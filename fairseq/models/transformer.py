@@ -486,7 +486,8 @@ class TransformerDecoder(FairseqIncrementalDecoder):
             single_attention_ = single_attention[:, 4, :, :].clone()
             corresponding_hidden = corresponding_hidden[:, 4, :, :]
             bsz, tgt_len ,src_len = single_attention_.size()
-            corresponding_hidden  = corresponding_hidden.view(bsz*self.head_nums, src_len, self.head_dim//self.head_nums).transpose(0,1).contiguous().view(src_len, bsz,self.head_dim).transpose(0,1)
+            # corresponding_hidden  = corresponding_hidden  = corresponding_hidden.view(bsz*self.head_nums, src_len, self.head_dim//self.head_nums).transpose(0,1).contiguous().view(src_len, bsz,self.head_dim).transpose(0,1)
+            corresponding_hidden  = corresponding_hidden  = corresponding_hidden.contiguous().view(bsz*self.head_nums, src_len, self.head_dim//self.head_nums).transpose(0,1).contiguous().view(src_len, bsz,self.head_dim).transpose(0,1)
             single_attention_ = single_attention_.view(-1,src_len)
             for i in range(1):
                 max_ = torch.max(single_attention_, 1)[0].unsqueeze(1).repeat(1,src_len)
@@ -499,7 +500,8 @@ class TransformerDecoder(FairseqIncrementalDecoder):
             if tmp_attn_max.masked_select(tmp_attn_max.eq(src_len)).numel() != 0:
                 for t in range(tmp_attn_max.size()[0])[::-1]:
                     if tmp_attn_max[t].cpu().numpy() == src_len:
-                        single_attention_[t] = single_attention[:, 4, :, :].view(-1, src_len)[t]
+                        # single_attention_[t] = single_attention[:, 4, :, :].view(-1, src_len)[t]
+                        single_attention_[t] = single_attention[:, 4, :, :].contiguous().view(-1, src_len)[t]
                     else:
                         break
 
